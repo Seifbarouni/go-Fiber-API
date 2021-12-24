@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Users []*m.User
@@ -40,7 +41,8 @@ func Register(newUser *m.User) (string, error) {
 		}
 	}
 	// add user to the list (change this to a database)
-	allUsers = append(allUsers, &m.User{ID: len(allUsers) + 1, Name: newUser.Name, Email: newUser.Email, Password: newUser.Password})
+	hash, _ := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
+	allUsers = append(allUsers, &m.User{ID: len(allUsers) + 1, Name: newUser.Name, Email: newUser.Email, Password: string(hash)})
 	// generate the jwt token
 	return generateToken(newUser.Name, len(allUsers))
 }

@@ -3,68 +3,62 @@ package services
 import (
 	"errors"
 
+	d "projects/Go-Fiber/api/data"
 	m "projects/Go-Fiber/api/models"
 )
 
-type Articles []*m.Article
-
-var ArticleList = Articles{
-	&m.Article{ID: 1, Title: "test1", AuthorId: 1,Content: "content test1"},
-	&m.Article{ID: 2, Title: "test2", AuthorId: 2,Content: "content test2"},
-	&m.Article{ID: 3, Title: "test3", AuthorId: 2,Content: "content test3"},
-}
+type Articles []m.Article
 
 func GetArticles() Articles {
-	return ArticleList
+	var articles Articles
+	if result := d.DB.Find(&articles); result.Error != nil || result.RowsAffected == 0 {
+		return []m.Article{}
+	}
+	return articles
 }
 
 func GetArticleById(id int) (*m.Article, error) {
-	for _, article := range ArticleList {
-		if article.ID == id {
-			return article, nil
-		}
+	var article m.Article
+	result := d.DB.First(&article, id)
+	if result.Error != nil {
+		return nil, errors.New("article not found")
 	}
-	return nil, errors.New("article not found")
+	return &article, nil
 }
 
 func AddArticle(art *m.Article) error {
-	art.ID = len(ArticleList) + 1
-	if art.Content == "" || art.Title == "" {
+	if art.Content == "" || art.Title == "" || art.AuthorId == 0 {
 		return errors.New("invalid body")
 	}
-	ArticleList = append(ArticleList, art)
-	return nil
+	result := d.DB.Create(art)
+	return result.Error
 }
 
 func UpdateArticle(articleToUpdate m.Article) (*m.Article, error) {
-	for _, article := range ArticleList {
-		if article.ID == articleToUpdate.ID {
-			if articleToUpdate.Title != "" {
-				article.Title = articleToUpdate.Title
-			}
-			if articleToUpdate.Content != "" {
-				article.Content = articleToUpdate.Content
-			}
-			return article, nil
-		}
+
+	var article m.Article
+	if result := d.DB.First(&article, articleToUpdate.ID); result.Error != nil {
+		return nil, errors.New("article not found")
 	}
 
-	return nil, errors.New("article not found")
+	if articleToUpdate.Title != "" {
+		article.Title = articleToUpdate.Title
+	}
+	if articleToUpdate.Content != "" {
+		article.Content = articleToUpdate.Content
+	}
+	if articleToUpdate.AuthorId != 0 {
+		article.AuthorId = articleToUpdate.AuthorId
+	}
+	if result := d.DB.Save(&article); result.Error != nil {
+		return nil, errors.New("cannot update article")
+	}
+	return &article, nil
 }
 
 func DeleteArticle(id int) error {
-	for i, article := range ArticleList {
-		if article.ID == id {
-			ArticleList = append(ArticleList[:i], ArticleList[i+1:]...)
-			update()
-			return nil
-		}
+	if result := d.DB.Delete(&m.Article{}, id); result.Error != nil || result.RowsAffected == 0 {
+		return errors.New("cannot delete article")
 	}
-	return errors.New("article not found")
-}
-
-func update() {
-	for i, article := range ArticleList {
-		article.ID = i + 1
-	}
+	return nil
 }

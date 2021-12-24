@@ -3,7 +3,8 @@ package main
 import (
 	"log"
 	"os"
-	"projects/Go-Fiber/api/controllers"
+	c "projects/Go-Fiber/api/controllers"
+	db "projects/Go-Fiber/api/data"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,9 +20,11 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
+	// Initialize database
+	db.InitializeDB()
 	// Config
 	app := fiber.New(fiber.Config{
-		Concurrency: 256*1024,
+		Concurrency: 256 * 1024,
 	})
 
 	app.Use(cors.New(cors.Config{
@@ -38,8 +41,8 @@ func main() {
 	}))
 
 	// Auth routes
-	app.Post("/register", controllers.Register)
-	app.Post("/login", controllers.Login)
+	app.Post("/register", c.Register)
+	app.Post("/login", c.Login)
 
 	// Protected routes
 	articles := app.Group("/api/v1")
@@ -49,12 +52,12 @@ func main() {
 			return c.Status(fiber.StatusUnauthorized).JSON(map[string]string{"error": "unauthorized"})
 		},
 	}))
-	articles.Get("/", controllers.Redirect)
-	articles.Get("/articles", controllers.Articles)
-	articles.Get("/articles/:id", controllers.GetArticleById)
-	articles.Post("/articles", controllers.Add)
-	articles.Put("/articles", controllers.Update)
-	articles.Delete("/articles/:id", controllers.Delete)
+	articles.Get("/", c.Redirect)
+	articles.Get("/articles", c.Articles)
+	articles.Get("/articles/:id", c.GetArticleById)
+	articles.Post("/articles", c.Add)
+	articles.Put("/articles", c.Update)
+	articles.Delete("/articles/:id", c.Delete)
 
 	log.Fatal(app.Listen(":3000"))
 }
