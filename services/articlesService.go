@@ -9,9 +9,9 @@ import (
 type Articles []*m.Article
 
 var ArticleList = Articles{
-	&m.Article{ID: 1, Title: "test1", Content: "content test1"},
-	&m.Article{ID: 2, Title: "test2", Content: "content test2"},
-	&m.Article{ID: 3, Title: "test3", Content: "content test3"},
+	&m.Article{ID: 1, Title: "test1", AuthorId: 1,Content: "content test1"},
+	&m.Article{ID: 2, Title: "test2", AuthorId: 2,Content: "content test2"},
+	&m.Article{ID: 3, Title: "test3", AuthorId: 2,Content: "content test3"},
 }
 
 func GetArticles() Articles {
