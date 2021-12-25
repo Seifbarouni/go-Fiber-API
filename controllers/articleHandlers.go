@@ -19,6 +19,16 @@ func Articles(c *fiber.Ctx) error {
 	return c.JSON(map[string]interface{}{"articles": articles})
 }
 
+func GetArticlesByAuthorId(c *fiber.Ctx) error {
+	idStr := c.Params("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(map[string]string{"error": "Invalid ID"})
+	}
+	articles := s.GetArticlesByAuthorId(id)
+	return c.JSON(map[string]interface{}{"articles": articles})
+}
+
 func GetArticleById(c *fiber.Ctx) error {
 	idStr := c.Params("id")
 	id, err := strconv.Atoi(idStr)

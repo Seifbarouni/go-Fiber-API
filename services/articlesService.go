@@ -17,6 +17,14 @@ func GetArticles() Articles {
 	return articles
 }
 
+func GetArticlesByAuthorId(id int) Articles {
+	var articles Articles
+	if result := d.DB.Where("author_id = ?", id).Find(&articles); result.Error != nil || result.RowsAffected == 0 {
+		return []m.Article{}
+	}
+	return articles
+}
+
 func GetArticleById(id int) (*m.Article, error) {
 	var article m.Article
 	result := d.DB.First(&article, id)

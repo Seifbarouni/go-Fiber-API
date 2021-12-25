@@ -54,6 +54,7 @@ func main() {
 	}))
 	articles.Get("/", c.Redirect)
 	articles.Get("/articles", c.Articles)
+	articles.Get("/articles/byAuthor/:id", c.GetArticlesByAuthorId)
 	articles.Get("/articles/:id", c.GetArticleById)
 	articles.Post("/articles", c.Add)
 	articles.Put("/articles", c.Update)
