@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"os"
+	d "projects/Go-Fiber/api/data"
 	m "projects/Go-Fiber/api/models"
 	"time"
 
@@ -10,41 +11,34 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Users []*m.User
-
-var allUsers = Users{
-	&m.User{ID: 1, Name: "test1", Email: "test1@gmail.com", Password: "123456"},
-	&m.User{ID: 2, Name: "test2", Email: "test2@gmail.com", Password: "789555"},
-	&m.User{ID: 3, Name: "test3", Email: "test3@gmail.com", Password: "321123"},
-}
-
 func Login(userToAuthenticate *m.User) (string, error) {
-	// check if user exists
-	for _, user := range allUsers {
-		if user.Email == userToAuthenticate.Email {
-			if user.Password == userToAuthenticate.Password {
-				// generate the jwt token
-				return generateToken(user.Name, user.ID)
-			} else {
-				return "", errors.New("wrong email or password")
-			}
-		}
+	var user m.User
+	if result := d.DB.Where("email = ?", userToAuthenticate.Email).First(&user); result.Error != nil || result.RowsAffected == 0 {
+		return "", errors.New("user not found, please register")
 	}
-	return "", errors.New("user not found")
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(userToAuthenticate.Password)); err != nil {
+		return "", errors.New("wrong email or password")
+	}
+	return generateToken(user.Name, user.ID)
 }
 
 func Register(newUser *m.User) (string, error) {
 	// check if user exists
-	for _, user := range allUsers {
-		if user.Email == newUser.Email {
-			return "", errors.New("user already exists")
-		}
+	var user m.User
+	if result := d.DB.Where("email = ?", newUser.Email).First(&user); result.Error == nil && result.RowsAffected != 0 {
+		return "", errors.New("user already exists, please login")
 	}
-	// add user to the list (change this to a database)
+
 	hash, _ := bcrypt.GenerateFromPassword([]byte(newUser.Password), bcrypt.DefaultCost)
-	allUsers = append(allUsers, &m.User{ID: len(allUsers) + 1, Name: newUser.Name, Email: newUser.Email, Password: string(hash)})
+	user.Name = newUser.Name
+	user.Email = newUser.Email
+	user.Password = string(hash)
+	if result := d.DB.Create(&user); result.Error != nil {
+		return "", errors.New("cannot create user")
+	}
 	// generate the jwt token
-	return generateToken(newUser.Name, len(allUsers))
+	return generateToken(user.Name, user.ID)
 }
 
 func generateToken(name string, id int) (string, error) {

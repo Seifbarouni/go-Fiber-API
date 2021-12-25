@@ -17,7 +17,7 @@ func Register(c *fiber.Ctx) error {
 		return c.Status(http.StatusTeapot).JSON(map[string]string{"error": "invalid body"})
 	}
 	if token, err := s.Register(newUser); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"error": err.Error()})
+		return c.Status(http.StatusNotFound).JSON(map[string]string{"error": err.Error()})
 	} else {
 		return c.Status(http.StatusCreated).JSON(map[string]string{"success": "user added!", "token": token})
 	}
@@ -32,7 +32,7 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(http.StatusTeapot).JSON(map[string]string{"error": "invalid body"})
 	}
 	if token, err := s.Login(user); err != nil {
-		return c.Status(http.StatusInternalServerError).JSON(map[string]string{"error": err.Error()})
+		return c.Status(http.StatusTeapot).JSON(map[string]string{"error": err.Error()})
 	} else {
 		return c.JSON(map[string]string{"success": "successful login!", "token": token})
 	}
