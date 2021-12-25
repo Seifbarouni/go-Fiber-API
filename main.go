@@ -43,6 +43,7 @@ func main() {
 	// Auth routes
 	app.Post("/register", c.Register)
 	app.Post("/login", c.Login)
+	app.Get("/refresh", c.RefreshToken)
 
 	// Protected routes
 	articles := app.Group("/api/v1")

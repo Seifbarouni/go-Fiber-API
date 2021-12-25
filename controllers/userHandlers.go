@@ -16,13 +16,13 @@ func Register(c *fiber.Ctx) error {
 	if newUser.Email == "" || newUser.Password == "" || newUser.Name == "" {
 		return c.Status(http.StatusTeapot).JSON(map[string]string{"error": "invalid body"})
 	}
-	if token,refreshToken, err := s.Register(newUser); err != nil {
+	if token, refreshToken, err := s.Register(newUser); err != nil {
 		return c.Status(http.StatusNotFound).JSON(map[string]string{"error": err.Error()})
 	} else {
 		return c.Status(http.StatusCreated).JSON(map[string]string{
-			 "access_token": token,
-			 "refresh_token":refreshToken,
-			})
+			"access_token":  token,
+			"refresh_token": refreshToken,
+		})
 	}
 }
 
@@ -34,31 +34,29 @@ func Login(c *fiber.Ctx) error {
 	if user.Email == "" || user.Password == "" {
 		return c.Status(http.StatusTeapot).JSON(map[string]string{"error": "invalid body"})
 	}
-	if token,refreshToken, err := s.Login(user); err != nil {
+	if token, refreshToken, err := s.Login(user); err != nil {
 		return c.Status(http.StatusTeapot).JSON(map[string]string{"error": err.Error()})
 	} else {
 		return c.JSON(map[string]string{
-			"access_token": token,
-			"refresh_token":refreshToken,
+			"access_token":  token,
+			"refresh_token": refreshToken,
 		})
 	}
 
 }
 
-/* func RefreshToken(c *fiber.Ctx) error {
-	refreshToken := c.Get("Authorization")
-	user := c.Locals("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	userID := claims["id"].(int)
-	if refreshToken == "" {
+func RefreshToken(c *fiber.Ctx) error {
+	refreshTokenWithBearer := c.Get("Authorization")
+	if refreshTokenWithBearer == "" {
 		return c.Status(http.StatusUnauthorized).JSON(map[string]string{"error": "invalid token"})
 	}
-	if token, err := s.RefreshToken(refreshToken,userID); err != nil {
+	refreshToken := refreshTokenWithBearer[7:]
+
+	if token, err := s.RefreshToken(refreshToken); err != nil {
 		return c.Status(http.StatusUnauthorized).JSON(map[string]string{"error": err.Error()})
 	} else {
 		return c.JSON(map[string]string{
 			"access_token": token,
 		})
 	}
-} */
-
+}
